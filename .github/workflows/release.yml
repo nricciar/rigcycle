@@ -33,5 +33,5 @@ jobs:
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: rigcycle-${{ steps.get_version.outputs.VERSION }}-linux.tar.gz
-        asset_name: rigcycle
+        asset_name: rigcycle-${{ steps.get_version.outputs.VERSION }}-linux.tar.gz
         tag: ${{ github.ref }}
