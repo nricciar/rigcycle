@@ -18,10 +18,17 @@ jobs:
     - uses: actions/checkout@v2
     - name: Build
       run: cargo build --release --locked
+    - name: Create Archive
+      run: |
+        mkdir -p rigcycle/linux
+        cp target/release/rigcycle rigcycle/linux/rigcycle
+        cp README.md rigcycle/README.md
+        cp example_config.yaml rigcycle/example_config.yaml
+        tar czf rigcycle-${{ github.ref }}-linux.tar.gz rigcycle/
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v1-release
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/release/rigcycle
+        file: rigcycle-${{ github.ref }}-linux.tar.gz
         asset_name: rigcycle
         tag: ${{ github.ref }}
