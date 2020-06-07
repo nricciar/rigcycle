@@ -1,0 +1,30 @@
+---
+receivers:
+  "localhost:51111":
+    day:
+      freq: 28074000
+      mode: FT8
+    night:
+      freq: 3573000
+      mode: FT8
+  "localhost:51112":
+    day:
+      freq: 18100000
+      mode: FT8
+    night:
+      freq: 7074000
+      mode: FT8
+  "localhost:51113":
+    day:
+      freq: 14074000
+      mode: FT8
+    night:
+      freq: 14074000
+      mode: FT8
+  "localhost:51114":
+    day:
+      freq: 21078000
+      mode: FT8
+    night:
+      freq: 10140000
+      mode: FT8
