@@ -1,3 +1,5 @@
+![Rust](https://github.com/nricciar/rigcycle/workflows/Rust/badge.svg)
+
 # rigcycle
 
 Used to control a group of receivers in SparkSDR to switch between defined profiles (e.g. day/night).
