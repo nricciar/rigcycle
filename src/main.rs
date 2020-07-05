@@ -24,7 +24,7 @@ mod server;
 
 use server::{Server};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize,Clone)]
 pub struct RigCtl {
     pub freq: i32,
     pub mode: Mode
@@ -32,7 +32,7 @@ pub struct RigCtl {
 
 pub type ReceiverConfig = BTreeMap<String,BTreeMap<String,RigCtl>>;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize,Clone)]
 pub struct Config {
     pub receivers: ReceiverConfig
 }
@@ -53,8 +53,7 @@ fn main() {
 
         (@subcommand ws =>
             (about: "websocket service")
-            (@arg port: +required "Port to listen on")
-            (@arg destination: +required "Destination location"))
+            (@arg port: +required "Port to listen on"))
         (@subcommand run =>
             (about: "run profile")
             (@arg profile_name: +required "Run profile for each receiver")));
@@ -63,15 +62,8 @@ fn main() {
     let matches = app.get_matches();
 
     clap_dispatch!(matches; {
-        ws(_, port as port, destination as destination) => {
-            match TcpStream::connect(destination) {
-                Ok(mut stream) => {
-                    listen(format!("127.0.0.1:{}",port), |out| Server { out: out, stream: stream.try_clone().unwrap() }).unwrap();
-                },
-                Err(e) => {
-                    println!("Failed to connect to {}: {}", destination, e);
-                }
-            }
+        ws(_, port as port) => {
+            listen(format!("127.0.0.1:{}",port), |out| Server { out: out, config: config.clone() }).unwrap();
         },
         run(_, profile_name as profile_name) => {
             for (connection_string, profiles) in &config.receivers {
