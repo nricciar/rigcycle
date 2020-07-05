@@ -14,3 +14,8 @@ serde_derive = "1"
 clap = "2.33.0"
 please-clap = "0.1.0"
 shellexpand = "2.0.0"
+regex = "1"
+ws = "0.9.1"
+portaudio = "0.7.0"
+hound = "3.4"
+ham-rs = { git = "https://github.com/nricciar/ham-rs", branch = "pre-release" }
