@@ -1,0 +1,37 @@
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+name: Create Release
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: cargo build --release --locked
+    - name: Get tag version
+      id: get_version
+      run: echo ::set-output name=VERSION::``${GITHUB_REF#refs/tags/}``
+    - name: Create Archive
+      run: |
+        mkdir -p rigcycle/linux
+        cp target/release/rigcycle rigcycle/linux/rigcycle
+        cp README.md rigcycle/README.md
+        cp example_config.yaml rigcycle/example_config.yaml
+        tar czf rigcycle-${{ steps.get_version.outputs.VERSION }}-linux.tar.gz rigcycle/
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v1-release
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: rigcycle-${{ steps.get_version.outputs.VERSION }}-linux.tar.gz
+        asset_name: rigcycle-${{ steps.get_version.outputs.VERSION }}-linux.tar.gz
+        tag: ${{ github.ref }}
