@@ -40,6 +40,25 @@ pub type ReceiverConfig = BTreeMap<String,BTreeMap<String,RigCtl>>;
 pub struct Config {
     pub receivers: ReceiverConfig
 }
+impl Config {
+    pub fn receivers(&self) -> Vec<ham_rs::Receiver> {
+        let mut count = 0;
+        self.receivers.iter().map(|(connection_string, _)| {
+            let mut stream = TcpStream::connect(&connection_string).unwrap();
+            let freq = crate::rig::get_frequency(&mut stream).unwrap();
+            let mode = crate::rig::get_mode(&mut stream).unwrap();
+            let ret = ham_rs::Receiver { id: count, frequency: freq.frequency, mode: mode.mode };
+            count += 1;
+            ret
+        }).collect()
+    }
+
+    pub fn connection_strings(&self) -> Vec<String> {
+        self.receivers.iter().map(|(connection_string, _)| {
+            connection_string.to_string()
+        }).collect()
+    }
+}
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
@@ -59,7 +78,7 @@ async fn main() -> std::io::Result<()> {
         (@subcommand proxy =>
             (about: "proxy websocket service")
             (@arg client_cert: +required "LOTW Client certificate")
-            (@arg client_cert_pass: --password "Client certificate password (default: prompt)"))
+            (@arg client_cert_pass: --password +takes_value "Client certificate password (default: prompt)"))
         (@subcommand ws =>
             (about: "websocket service")
             (@arg port: +required "Port to listen on"))
@@ -71,12 +90,16 @@ async fn main() -> std::io::Result<()> {
     let matches = app.get_matches();
 
     clap_dispatch!(matches; {
-        proxy(_, client_cert as client_cert) => {
+        proxy(proxy_matches, client_cert as client_cert) => {
             let mut f = File::open(&client_cert).expect("no file found");
             let metadata = std::fs::metadata(&client_cert).expect("unable to read metadata");
             let mut buffer = vec![0; metadata.len() as usize];
             f.read(&mut buffer).expect("buffer overflow");
-            let pass = rpassword::read_password_from_tty(Some("Password: ")).unwrap();
+            let pass = 
+                match proxy_matches.value_of("client_cert_pass") {
+                    Some(pass) => pass.to_string(),
+                    None => rpassword::read_password_from_tty(Some("Password: ")).unwrap(),
+                };
             let cert = Identity::from_pkcs12(&buffer, &pass).unwrap();
 
             let proxy = ProxyService::new(config.clone(), cert);
@@ -84,7 +107,6 @@ async fn main() -> std::io::Result<()> {
         },
         ws(_, port as port) => {
             listen(format!("127.0.0.1:{}",port), |out| {
-                let tmp = out.clone();
                 Server { out: out, config: config.clone() }
             }).unwrap();
         },
