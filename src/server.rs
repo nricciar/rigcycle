@@ -113,7 +113,9 @@ impl Handler for Server {
                         println!(">> {}", resp);
                         self.out.send(resp).unwrap();
                     },
-                    None => {}
+                    None => {
+                        eprintln!("No Response!");
+                    }
                 }
             },
             _ => {

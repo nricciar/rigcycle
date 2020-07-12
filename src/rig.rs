@@ -14,9 +14,13 @@ pub fn get_frequency(stream:&mut TcpStream) -> Result<FrequencyResponse,CommandE
     let freq = line.trim();
     let freq = freq.parse::<i32>()?;
 
-    let mut line = String::new();
+    // TODO: This used to work now it does not ¯\_(ツ)_/¯ 
+    /*let mut line = String::new();
     reader.read_line(&mut line)?;
     let vfo = line.trim();
+
+    println!("vfo: {}", vfo);*/
+    let vfo = "";
 
     Ok(FrequencyResponse{frequency:freq,vfo: vfo.to_string()})
 }
